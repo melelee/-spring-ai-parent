@@ -3,3 +3,11 @@ spring:
     ollama:
       chat:
         model: gemma3
+logging:
+  level:
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: debug
