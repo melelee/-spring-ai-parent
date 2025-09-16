@@ -2,13 +2,19 @@ package com.melelee.ai;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SafeGuardAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 
 import java.util.List;
@@ -87,6 +93,55 @@ public class ChatClientTest {
                 .call()
                 .content();
         System.out.println(content);
+    }
+
+
+    @Test
+    public void testChatMemory(@Autowired ChatModel chatModel, @Autowired ChatMemory chatMemory) {
+        ChatClient.Builder builder = ChatClient.builder(chatModel);
+        builder.defaultAdvisors(PromptChatMemoryAdvisor.builder(chatMemory).build());
+
+
+        ChatClient chatClient = builder.build();
+
+        String content = chatClient.prompt()
+                .user("我叫张三")
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, "1"))
+                .call()
+                .content();
+        System.out.println(content);
+
+        content = chatClient.prompt()
+                .user("我叫什么")
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, "1"))
+                .call()
+                .content();
+        System.out.println(content);
+
+
+        content = chatClient.prompt()
+                .user("我叫李四")
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, "2"))
+                .call()
+                .content();
+        System.out.println(content);
+
+        content = chatClient.prompt()
+                .user("我叫李四")
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, "2"))
+                .call()
+                .content();
+        System.out.println(content);
+    }
+
+
+    @TestConfiguration
+    static class TestConfig {
+
+        @Bean
+        public ChatMemory builder(ChatMemoryRepository chatMemoryRepository) {
+            return MessageWindowChatMemory.builder().maxMessages(10).chatMemoryRepository(chatMemoryRepository).build();
+        }
     }
 
 }
