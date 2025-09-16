@@ -72,19 +72,21 @@ public class ChatClientTest {
 
 
     @Test
-    public void testAdvisors(@Autowired ChatModel chatModel, @Value("classpath:/prompt.st") Resource resource) {
+    public void testAdvisors(@Autowired ChatModel chatModel) {
         ChatClient.Builder builder = ChatClient.builder(chatModel);
-        builder.defaultSystem(resource).defaultAdvisors(new SimpleLoggerAdvisor(),new SafeGuardAdvisor(List.of("你好"),"shibai",0));
+        builder.defaultAdvisors(new SimpleLoggerAdvisor(),
+                        new SafeGuardAdvisor(List.of("敏感词"), "触发了敏感词", 0),
+                        new BaseAdvisorImpl());
 
         ChatOptions options = ChatOptions.builder().temperature(1.9).build();
 
         ChatClient chatClient = builder.defaultOptions(options).build();
 
-        String hello = chatClient.prompt()
-                .user("你好")
+        String content = chatClient.prompt()
+                .user("我眼睛痛")
                 .call()
                 .content();
-        System.out.println(hello);
+        System.out.println(content);
     }
 
 }
