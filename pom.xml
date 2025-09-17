@@ -25,6 +25,7 @@
     </developers>
     <modules>
         <module>spring-ai-chatclient</module>
+        <module>spring-ai-tools</module>
     </modules>
     <scm>
         <connection/>
